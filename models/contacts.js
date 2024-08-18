@@ -12,7 +12,7 @@ const listContacts = async () => {
 const getContactById = async (contactId) => {
   const response = await fs.readFile(filePath);
   const contactsList = JSON.parse(response);
-  const contact = contactsList.filter((obj) => obj.id == contactId);
+  const contact = contactsList.find((obj) => obj.id === contactId);
   return contact;
 };
 
@@ -43,15 +43,14 @@ const updateContact = async (contactId, body) => {
   const rawFile = await fs.readFile(filePath);
   const contactList = JSON.parse(rawFile);
   const indexContact = contactList.findIndex((obj) => obj.id === contactId);
-  const contact = contactList[indexContact];
-
-  for (let key in body) {
-    if (contact.hasOwnProperty(key)) {
-      contact[key] = body[key];
-    }
-  }
 
   if (indexContact >= 0) {
+    const contact = contactList[indexContact];
+    for (let key in body) {
+      if (contact.hasOwnProperty(key)) {
+        contact[key] = body[key];
+      }
+    }
     contactList.splice(indexContact, 1, contact);
     await fs.writeFile(filePath, JSON.stringify(contactList));
     return contact;

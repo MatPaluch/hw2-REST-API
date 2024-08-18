@@ -64,8 +64,9 @@ router.put("/:contactId", async (req, res, next) => {
       const modifiedContact = await updateContact(contactId, req.body);
       if (modifiedContact === false) {
         res.status(404).json({ message: "Not found" });
+      } else {
+        res.json({ mess: "Contact updated!", data: modifiedContact });
       }
-      res.json({ mess: "Contact updated!", data: modifiedContact });
     } else {
       res.json({ message: valid });
     }
