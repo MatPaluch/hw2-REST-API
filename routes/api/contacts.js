@@ -10,8 +10,8 @@ router.post("/", contactOperations.createContact);
 
 router.delete("/:contactId", contactOperations.deleteContact);
 
-router.put("/:contactId", async (req, res, next) => {
-  res.json({ message: "template message" });
-});
+router.put("/:contactId", contactOperations.updateContact);
+
+router.put("/:contactId/favorite", contactOperations.switchFavorite);
 
 module.exports = router;
