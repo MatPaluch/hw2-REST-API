@@ -6,13 +6,16 @@ router.post("/signup", authOperations.register);
 
 router.post("/login", authOperations.login);
 
+router.get("/logout", authOperations.authMiddleWare, authOperations.logout);
+
+router.get("/current", authOperations.authMiddleWare, authOperations.current);
+
 router.get("/list", authOperations.authMiddleWare, (req, res, next) => {
-  const { username } = req.user;
   res.json({
     status: "success",
     code: 200,
     data: {
-      message: `Authorization was successful: ${username}`,
+      message: `Authorization was successful: `,
     },
   });
 });

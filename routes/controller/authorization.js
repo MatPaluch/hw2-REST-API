@@ -1,6 +1,5 @@
 const passport = require("passport");
 const MongooseService = require("../../models/authoriation.js");
-const User = require("../../models/shemas/user.js");
 const JWT = require("jsonwebtoken");
 
 require("dotenv").config();
@@ -9,7 +8,7 @@ const register = async (req, res, next) => {
   try {
     const { username, email, password } = req.body;
 
-    const user = await MongooseService.findUser(email);
+    const user = await MongooseService.findUserByEmail(email);
     if (user) {
       return res.status(409).json({
         status: "Error",
@@ -18,7 +17,11 @@ const register = async (req, res, next) => {
       });
     }
 
-    const newUser = new User({ username, email, password });
+    const newUser = await MongooseService.createUser({
+      username,
+      email,
+      password,
+    });
     await newUser.setPassword(password);
     await newUser.save();
 
@@ -41,7 +44,7 @@ const register = async (req, res, next) => {
 const login = async (req, res, next) => {
   try {
     const { username, email, password } = req.body;
-    const user = await MongooseService.findUser(email);
+    const user = await MongooseService.findUserByEmail(email);
 
     if (!user) {
       return res.status(400).json({
@@ -89,6 +92,62 @@ const login = async (req, res, next) => {
   }
 };
 
+const logout = async (req, res, next) => {
+  try {
+    const authToken = req.headers.authorization;
+    const tokenJWT = authToken.slice(7);
+    const secret = process.env.SECRET;
+    const payload = JWT.verify(tokenJWT, secret);
+
+    const user = await MongooseService.findUserById(payload.id);
+
+    if (user.token === null) {
+      return res.status(401).json({
+        status: "Error",
+        code: 401,
+        message: "Not authorized",
+      });
+    }
+
+    user.token = null;
+    user.save();
+
+    res.status(204);
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+};
+
+const current = async (req, res, next) => {
+  try {
+    const authToken = req.headers.authorization;
+    const tokenJWT = authToken.slice(7);
+    const secret = process.env.SECRET;
+    const payload = JWT.verify(tokenJWT, secret);
+
+    const user = await MongooseService.findUserById(payload.id);
+
+    if (user.token === null) {
+      return res.status(401).json({
+        status: "Error",
+        code: 401,
+        message: "Not authorized",
+      });
+    }
+
+    res.status(200).json({
+      status: "Success",
+      code: 200,
+      email: user.email,
+      subscription: user.subscription,
+    });
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+};
+
 const authMiddleWare = (req, res, next) => {
   passport.authenticate("jwt", { session: false }, (err, user) => {
     if (!user || err) {
@@ -102,4 +161,5 @@ const authMiddleWare = (req, res, next) => {
     next();
   })(req, res, next);
 };
-module.exports = { register, login, authMiddleWare };
+
+module.exports = { register, login, authMiddleWare, logout, current };

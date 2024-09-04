@@ -12,7 +12,7 @@ const params = {
 };
 
 const callback = async function (payload, done) {
-  await User.findById(payload.id)
+  User.findById(payload.id)
     .then((user) => {
       if (!user) {
         return done(new Error("User not found"));
