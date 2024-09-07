@@ -1,5 +1,7 @@
 const app = require("./app");
 const mongoose = require("mongoose");
+const fs = require("fs").promises;
+const path = require("path");
 
 require("dotenv").config();
 
@@ -8,10 +10,35 @@ const uriDB = process.env.DB_HOST;
 
 const connection = mongoose.connect(uriDB);
 
+const pathToTempDir = path.join(process.cwd(), "temporary/images");
+const pathToStoreImages = path.join(process.cwd(), "public/avatars");
+
+const isAccess = (path) => {
+  return fs
+    .access(path)
+    .then(() => true)
+    .catch(() => false);
+};
+
+const createFolderIfDoesNotExist = async (folderPath) => {
+  const result = await isAccess(folderPath);
+
+  if (!result) {
+    try {
+      await fs.mkdir(folderPath, { recursive: true });
+    } catch (error) {
+      console.error(error);
+      next(error);
+    }
+  }
+};
+
 connection
   .then(() => {
     console.log("Database connection successful");
-    app.listen(port, () => {
+    app.listen(port, async () => {
+      await createFolderIfDoesNotExist(pathToTempDir);
+      await createFolderIfDoesNotExist(pathToStoreImages);
       console.log(`Server running. Use our API on port: ${port}`);
     });
   })
