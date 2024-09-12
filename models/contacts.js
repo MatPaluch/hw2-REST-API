@@ -52,7 +52,8 @@ const updateContact = async (contactId, body) => {
       }
     }
     contactList.splice(indexContact, 1, contact);
-    await fs.writeFile(filePath, JSON.stringify(contactList));
+
+    await fs.writeFile(filePath, JSON.stringify(contactList, null, 2));
     return contact;
   } else {
     return false;

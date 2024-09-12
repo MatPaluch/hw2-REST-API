@@ -21,10 +21,11 @@ router.get("/", async (req, res, next) => {
 router.get("/:contactId", async (req, res, next) => {
   const { contactId } = req.params;
   const contact = await getContactById(contactId);
-
-  if (contact.length === 0) {
-    res.status(404).json({ message: "Not found" });
-  } else res.json({ data: contact });
+  if (contact) {
+    res.json({ data: contact });
+  } else {
+    next();
+  }
 });
 
 router.post("/", async (req, res, next) => {
@@ -58,14 +59,14 @@ router.delete("/:contactId", async (req, res, next) => {
 router.put("/:contactId", async (req, res, next) => {
   if (Object.keys(req.body).length > 0) {
     const valid = checkUpdateProperties(req.body);
-    if (valid === true) {
+    if (valid) {
       const { contactId } = req.params;
 
       const modifiedContact = await updateContact(contactId, req.body);
-      if (modifiedContact === false) {
-        res.status(404).json({ message: "Not found" });
-      } else {
+      if (modifiedContact) {
         res.json({ mess: "Contact updated!", data: modifiedContact });
+      } else {
+        next();
       }
     } else {
       res.json({ message: valid });
